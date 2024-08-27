@@ -100,22 +100,22 @@ const App = () => {
     }
   }
 
-  return (
-    <div className="App">
-      <header className="App-header">
-        <div
-          className={`portrait-container ${isCalling ? 'active' : 'inactive'} ${isAgentSpeaking ? 'agent-speaking' : ''}`}
-          onClick={toggleConversation}
-        >
-          <img
-            src="/Fiona_Round.png"
-            alt="AI Agent"
-            className="agent-portrait"
-          />
-        </div>
-      </header>
-    </div>
-  );
+return (
+  <div className="App">
+    <header className="App-header">
+      <div
+        className={`portrait-container ${isCalling ? 'active' : 'inactive'} ${isAgentSpeaking ? 'agent-speaking' : ''}`}
+        onClick={toggleConversation}
+      >
+        <img
+          src="/Victor_Round.png"
+          alt="Victor"
+          className="agent-portrait"
+        />
+      </div>
+    </header>
+  </div>
+);
 };
 
 export default App;
