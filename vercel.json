@@ -26,7 +26,7 @@
         },
         {
           "key": "X-Frame-Options",
-          "value": "ALLOW"
+          "value": "ALLOW-FROM https://*.squarespace.com https://*.fullyinformedconversations.org"
         }
       ]
     }
