@@ -23,10 +23,6 @@
         {
           "key": "Content-Security-Policy",
           "value": "frame-ancestors 'self' https://*.squarespace.com https://*.fullyinformedconversations.org"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "ALLOW-FROM https://*.squarespace.com https://*.fullyinformedconversations.org"
         }
       ]
     }
