@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./App.css";
 import { RetellWebClient } from "retell-client-js-sdk";
 
-const agentId = process.env.REACT_APP_RETELL_AGENTID;
+const agentId = process.env.REACT_APP_RETELL_AGENTID_VICTOR;
 
 interface RegisterCallResponse {
   access_token: string;
@@ -100,22 +100,22 @@ const App = () => {
     }
   }
 
-  return (
-    <div className="App">
-      <header className="App-header">
-        <div
-          className={`portrait-container ${isCalling ? 'active' : 'inactive'} ${isAgentSpeaking ? 'agent-speaking' : ''}`}
-          onClick={toggleConversation}
-        >
-          <img
-            src="/Fiona_Round.png"
-            alt="AI Agent"
-            className="agent-portrait"
-          />
-        </div>
-      </header>
-    </div>
-  );
+return (
+  <div className="App">
+    <header className="App-header">
+      <div
+        className={`portrait-container ${isCalling ? 'active' : 'inactive'} ${isAgentSpeaking ? 'agent-speaking' : ''}`}
+        onClick={toggleConversation}
+      >
+        <img
+          src="/Victor_Round.png"
+          alt="Victor"
+          className="agent-portrait"
+        />
+      </div>
+    </header>
+  </div>
+);
 };
 
 export default App;
