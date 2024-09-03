@@ -56,11 +56,21 @@ const App = () => {
     });
   }, []);
 
+async function requestMicrophonePermission() {
+  try {
+    await navigator.mediaDevices.getUserMedia({ audio: true });
+    console.log("Microphone permission granted");
+  } catch (err) {
+    console.error("Error requesting microphone permission:", err);
+  }
+}
+
   const toggleConversation = async () => {
     if (isCalling) {
       retellWebClient.stopCall();
     } else {
       try {
+        await requestMicrophonePermission();
         const registerCallResponse = await registerCall(agentId);
         if (registerCallResponse.access_token) {
           await retellWebClient.startCall({
