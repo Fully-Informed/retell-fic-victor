@@ -13,17 +13,20 @@ const retellWebClient = new RetellWebClient();
 const App = () => {
   const [isCalling, setIsCalling] = useState(false);
   const [isAgentSpeaking, setIsAgentSpeaking] = useState(false);
+  const [instructionsVisible, setInstructionsVisible] = useState(true);
 
   useEffect(() => {
     retellWebClient.on("call_started", () => {
       console.log("call started");
       setIsCalling(true);
+      setInstructionsVisible(false);
     });
 
     retellWebClient.on("call_ended", () => {
       console.log("call ended");
       setIsCalling(false);
       setIsAgentSpeaking(false);
+      setInstructionsVisible(true);
     });
 
     retellWebClient.on("agent_start_talking", () => {
@@ -69,6 +72,7 @@ async function requestMicrophonePermission() {
     if (isCalling) {
       retellWebClient.stopCall();
     } else {
+      setInstructionsVisible(false);
       try {
         await requestMicrophonePermission();
         const registerCallResponse = await registerCall(agentId);
@@ -78,9 +82,11 @@ async function requestMicrophonePermission() {
           });
         } else {
           console.error("No access token received");
+          setInstructionsVisible(true);
         }
       } catch (error) {
         console.error("Error starting call:", error);
+        setInstructionsVisible(true);
       }
     }
   };
@@ -110,22 +116,40 @@ async function requestMicrophonePermission() {
     }
   }
 
-return (
-  <div className="App">
-    <header className="App-header">
-      <div
-        className={`portrait-container ${isCalling ? 'active' : 'inactive'} ${isAgentSpeaking ? 'agent-speaking' : ''}`}
-        onClick={toggleConversation}
-      >
-        <img
-          src="/Victor_Round.png"
-          alt="Victor"
-          className="agent-portrait"
-        />
-      </div>
-    </header>
-  </div>
-);
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
+    e.currentTarget.classList.add('active');
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    e.currentTarget.classList.remove('active');
+    toggleConversation();
+  }; 
+
+  return (
+    <div className="App">
+      <header className="App-header">
+        <div className="portrait-wrapper">
+          <div
+            className={`portrait-container ${isCalling ? 'active' : 'inactive'} ${isAgentSpeaking ? 'agent-speaking' : ''}`}
+            onClick={toggleConversation}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
+            <img
+               src="/Victor_Round.png"
+               alt="Victor"
+              className="agent-portrait"
+            />
+          </div>
+          <div className={`instructions ${instructionsVisible ? 'visible' : 'hidden'}`}>
+            <p><strong>Click</strong> or <strong>Tap</strong></p>
+          </div>
+        </div>
+      </header>
+    </div>
+  );
 };
 
 export default App;
