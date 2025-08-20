@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import "./App.css";
 import { RetellWebClient } from "retell-client-js-sdk";
 
@@ -14,6 +14,7 @@ const App = () => {
   const [isCalling, setIsCalling] = useState(false);
   const [isAgentSpeaking, setIsAgentSpeaking] = useState(false);
   const [instructionsVisible, setInstructionsVisible] = useState(true);
+  const speakingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     retellWebClient.on("call_started", () => {
@@ -24,6 +25,11 @@ const App = () => {
 
     retellWebClient.on("call_ended", () => {
       console.log("call ended");
+      // Clear any pending speaking timeout
+      if (speakingTimeoutRef.current) {
+        clearTimeout(speakingTimeoutRef.current);
+        speakingTimeoutRef.current = null;
+      }
       setIsCalling(false);
       setIsAgentSpeaking(false);
       setInstructionsVisible(true);
@@ -31,12 +37,22 @@ const App = () => {
 
     retellWebClient.on("agent_start_talking", () => {
       console.log("agent_start_talking");
+      // Clear any pending timeout to stop speaking
+      if (speakingTimeoutRef.current) {
+        clearTimeout(speakingTimeoutRef.current);
+        speakingTimeoutRef.current = null;
+      }
       setIsAgentSpeaking(true);
     });
 
     retellWebClient.on("agent_stop_talking", () => {
       console.log("agent_stop_talking");
-      setIsAgentSpeaking(false);
+      // Wait 400ms before hiding green halo
+      // This prevents flickering on short speech segments
+      speakingTimeoutRef.current = setTimeout(() => {
+        setIsAgentSpeaking(false);
+        speakingTimeoutRef.current = null;
+      }, 400);
     });
 
     retellWebClient.on("audio", (audio) => {
@@ -57,6 +73,13 @@ const App = () => {
       setIsCalling(false);
       setIsAgentSpeaking(false);
     });
+
+    // Cleanup function
+    return () => {
+      if (speakingTimeoutRef.current) {
+        clearTimeout(speakingTimeoutRef.current);
+      }
+    };
   }, []);
 
 async function requestMicrophonePermission() {
@@ -137,6 +160,7 @@ async function requestMicrophonePermission() {
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
           >
+            <div className={`halo ${isCalling ? 'active' : 'inactive'} ${isAgentSpeaking ? 'speaking' : 'not-speaking'}`}></div>
             <img
                src="/Victor_Round.png"
                alt="Victor"
