@@ -26,7 +26,7 @@ interface RegisterCallResponse {
 // Mutable so the ?tune panel can adjust it live.
 const haloResponse: HaloResponse = {
   noiseFloor: 0,
-  fullScale: 0.1,
+  fullScale: 0.13,
   curve: 0.75,
   attackMs: 160,
   releaseMs: 240,

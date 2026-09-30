@@ -100,7 +100,7 @@
   --speak-swell: 0.05; /* extra growth at full volume */
   --speak-hue: 120;
   --speak-lightness: 50%;
-  --speak-alpha: 0.85;
+  --speak-alpha: 0.49;
   --speak-solid: 60%; /* gradient: solid colour up to here... */
   --speak-fade: 70%; /* ...fading to transparent here */
 
