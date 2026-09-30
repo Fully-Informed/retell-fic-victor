@@ -95,7 +95,7 @@
 .halo {
   --level: 0; /* 0..1, set from App.tsx every frame from the agent's volume */
 
-  /* Speaking (green) layer */
+  /* Speaking (green) layer. All of these can be tuned live with ?tune */
   --speak-size: 1.1; /* size relative to the grey halo */
   --speak-swell: 0.05; /* extra growth at full volume */
   --speak-hue: 120;

@@ -1,0 +1,163 @@
+.halo-tuner {
+  position: fixed;
+  right: 8px;
+  bottom: 8px;
+  z-index: 100;
+  width: min(320px, calc(100vw - 16px));
+  max-height: calc(100vh - 16px);
+  display: flex;
+  flex-direction: column;
+  background: rgba(20, 20, 20, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  color: #eee;
+  font: 12px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.halo-tuner-toggle {
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.halo-tuner-body {
+  overflow-y: auto;
+  padding: 0 12px 12px;
+}
+
+.halo-tuner h4 {
+  margin: 12px 0 4px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #999;
+}
+
+.halo-tuner label {
+  display: block;
+  margin: 6px 0;
+}
+
+.halo-tuner label span {
+  display: flex;
+  justify-content: space-between;
+}
+
+.halo-tuner input[type="range"] {
+  width: 100%;
+  margin: 2px 0 0;
+  accent-color: #2ecc40;
+}
+
+.halo-tuner-button {
+  width: 100%;
+  padding: 7px 10px;
+  border: none;
+  border-radius: 6px;
+  background: #2ecc40;
+  color: #000;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.halo-tuner-button.secondary {
+  background: #444;
+  color: #eee;
+}
+
+.halo-tuner-button:disabled {
+  background: #333;
+  color: #999;
+  cursor: default;
+}
+
+.halo-tuner-meter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.halo-tuner-meter span {
+  width: 44px;
+  color: #999;
+}
+
+.halo-tuner-track {
+  position: relative;
+  flex: 1;
+  height: 8px;
+  background: #333;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.halo-tuner-fill {
+  height: 100%;
+  width: 0;
+}
+
+.halo-tuner-fill.rms {
+  background: #bbb;
+}
+
+.halo-tuner-fill.level {
+  background: #2ecc40;
+}
+
+.halo-tuner-marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #ff851b;
+}
+
+.halo-tuner-marker.full {
+  background: #2ecc40;
+}
+
+.halo-tuner-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.halo-tuner-status {
+  margin-top: 6px;
+  color: #2ecc40;
+}
+
+.halo-tuner textarea {
+  width: 100%;
+  margin-top: 8px;
+  box-sizing: border-box;
+  background: #111;
+  color: #ccc;
+  border: 1px solid #333;
+  border-radius: 6px;
+  font: 11px/1.4 ui-monospace, Menlo, monospace;
+  resize: vertical;
+}
+
+/* Phones: panel on the bottom, portrait moved to the top so both are visible */
+@media (max-width: 700px) {
+  .halo-tuner {
+    left: 8px;
+    right: 8px;
+    width: auto;
+    max-height: 45vh;
+  }
+
+  .App.tuning .App-header {
+    justify-content: flex-start;
+  }
+}
