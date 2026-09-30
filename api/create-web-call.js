@@ -15,7 +15,7 @@ module.exports = async function handler(req, res) {
   console.log('API Key (first 4 chars):', apiKey ? apiKey.substring(0, 4) : 'undefined');
 
   try {
-    const response = await axios.post('https://api.retellai.com/v2/create-web-call', 
+    const response = await axios.post('https://api.retellai.com/v3/create-web-call', 
       { agent_id },
       {
         headers: {

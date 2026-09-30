@@ -93,31 +93,68 @@
 }
 
 .halo {
+  --level: 0; /* 0..1, set from App.tsx every frame from the agent's volume */
+
+  /* Speaking (green) layer */
+  --speak-size: 1.1; /* size relative to the grey halo */
+  --speak-swell: 0.05; /* extra growth at full volume */
+  --speak-hue: 120;
+  --speak-lightness: 50%;
+  --speak-alpha: 0.85;
+  --speak-solid: 60%; /* gradient: solid colour up to here... */
+  --speak-fade: 70%; /* ...fading to transparent here */
+
+  /* Listening (grey) layer */
+  --listen-alpha: 0.2;
+  --listen-fade: 1; /* how much the grey fades out as the agent speaks */
+
   position: absolute;
   top: 50%;
   left: 50%;
   width: 120%;
   height: 120%;
-  border-radius: 50%;
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 1;
   opacity: 0;
-  background: none;
   transition: opacity 0.3s ease;
 }
 
-/* Grey halo when active but not speaking */
-.halo.active.not-speaking {
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 60%, transparent 70%);
+.halo.active {
   opacity: 1;
 }
 
-/* Green halo when speaking */
-.halo.active.speaking {
-  background: radial-gradient(circle, rgba(0, 255, 0, 0.5) 60%, transparent 70%);
-  opacity: 1;
-  animation: halo-pulse 2.5s infinite ease-in-out;
+.halo-listening,
+.halo-speaking {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+/* Grey while listening; fades out as the agent's voice comes in */
+.halo-listening {
+  background: radial-gradient(circle, rgba(255, 255, 255, var(--listen-alpha)) 60%, transparent 70%);
+  opacity: calc(1 - var(--listen-fade) * var(--level));
+}
+
+/* Green, brightens and swells with the agent's volume */
+.halo-speaking {
+  background: radial-gradient(
+    circle,
+    hsla(var(--speak-hue), 100%, var(--speak-lightness), var(--speak-alpha)) var(--speak-solid),
+    transparent var(--speak-fade)
+  );
+  opacity: var(--level);
+  transform: scale(calc(var(--speak-size) * (1 + var(--speak-swell) * var(--level))));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .halo-speaking {
+    transform: scale(var(--speak-size));
+  }
 }
 
 .portrait-container.inactive .agent-portrait {
@@ -132,17 +169,6 @@
 
 .portrait-container:active .agent-portrait {
   filter: brightness(1.1);
-}
-
-@keyframes halo-pulse {
-  0%, 100% {
-    background: radial-gradient(circle, rgba(0, 255, 0, 0.4) 60%, transparent 70%);
-    transform: translate(-50%, -50%) scale(1);
-  }
-  50% {
-    background: radial-gradient(circle, rgba(0, 255, 0, 0.6) 55%, transparent 75%);
-    transform: translate(-50%, -50%) scale(1.05);
-  }
 }
 
 /* Smooth transitions for all states */

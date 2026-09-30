@@ -5,18 +5,66 @@ import { RetellWebClient } from "retell-client-js-sdk";
 const agentId = process.env.REACT_APP_RETELL_AGENTID_VICTOR;
 
 interface RegisterCallResponse {
+  call_id: string;
   access_token: string;
+  transport?: "livekit" | "gateway";
+  ice_servers?: RTCIceServer[];
 }
+
+// The green halo follows the agent's output volume. Raw RMS is mapped to a
+// 0..1 level: below noiseFloor is silence (grey halo), fullScale and above is
+// full green. The level then follows an envelope: it rises quickly when the
+// agent speaks (attackMs) and fades out gently (releaseMs), so short gaps
+// between words dip the halo instead of switching it off. curve < 1 makes
+// quieter speech show more green. The halo's look lives in App.css.
+const haloResponse = {
+  noiseFloor: 0,
+  fullScale: 0.1,
+  curve: 0.75,
+  attackMs: 160,
+  releaseMs: 240,
+};
 
 const retellWebClient = new RetellWebClient();
 
 const App = () => {
   const [isCalling, setIsCalling] = useState(false);
-  const [isAgentSpeaking, setIsAgentSpeaking] = useState(false);
   const [instructionsVisible, setInstructionsVisible] = useState(true);
-  const speakingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const haloRef = useRef<HTMLDivElement>(null);
+  const levelRef = useRef(0);
+  const lastFrameTimeRef = useRef<number | null>(null);
 
   useEffect(() => {
+    // Written straight to a CSS variable: this runs every animation frame, so
+    // going through React state would re-render the app ~60 times a second.
+    const setHaloLevel = (level: number) => {
+      levelRef.current = level;
+      const shown = Math.pow(level, haloResponse.curve);
+      haloRef.current?.style.setProperty("--level", shown.toFixed(3));
+    };
+
+    const resetHalo = () => {
+      lastFrameTimeRef.current = null;
+      setHaloLevel(0);
+    };
+
+    const processRms = (rms: number) => {
+      const { noiseFloor, fullScale, attackMs, releaseMs } = haloResponse;
+      const target = Math.min(
+        1,
+        Math.max(0, (rms - noiseFloor) / (fullScale - noiseFloor)),
+      );
+
+      // Frame-rate independent smoothing (frames aren't always 16ms apart).
+      const now = performance.now();
+      const elapsed =
+        lastFrameTimeRef.current === null ? 16 : now - lastFrameTimeRef.current;
+      lastFrameTimeRef.current = now;
+      const timeConstant = target > levelRef.current ? attackMs : releaseMs;
+      const smoothing = 1 - Math.exp(-elapsed / Math.max(timeConstant, 1));
+      setHaloLevel(levelRef.current + (target - levelRef.current) * smoothing);
+    };
+
     retellWebClient.on("call_started", () => {
       console.log("call started");
       setIsCalling(true);
@@ -25,38 +73,17 @@ const App = () => {
 
     retellWebClient.on("call_ended", () => {
       console.log("call ended");
-      // Clear any pending speaking timeout
-      if (speakingTimeoutRef.current) {
-        clearTimeout(speakingTimeoutRef.current);
-        speakingTimeoutRef.current = null;
-      }
+      resetHalo();
       setIsCalling(false);
-      setIsAgentSpeaking(false);
       setInstructionsVisible(true);
     });
 
-    retellWebClient.on("agent_start_talking", () => {
-      console.log("agent_start_talking");
-      // Clear any pending timeout to stop speaking
-      if (speakingTimeoutRef.current) {
-        clearTimeout(speakingTimeoutRef.current);
-        speakingTimeoutRef.current = null;
-      }
-      setIsAgentSpeaking(true);
-    });
-
-    retellWebClient.on("agent_stop_talking", () => {
-      console.log("agent_stop_talking");
-      // Wait 400ms before hiding green halo
-      // This prevents flickering on short speech segments
-      speakingTimeoutRef.current = setTimeout(() => {
-        setIsAgentSpeaking(false);
-        speakingTimeoutRef.current = null;
-      }, 400);
-    });
-
-    retellWebClient.on("audio", (audio) => {
-      // Handle audio if needed
+    // Fires every animation frame with a snapshot of the agent's audio
+    // (requires emitRawAudioSamples: true in startCall).
+    retellWebClient.on("audio", (audio: Float32Array) => {
+      let sum = 0;
+      for (let i = 0; i < audio.length; i++) sum += audio[i] * audio[i];
+      processRms(Math.sqrt(sum / audio.length));
     });
 
     retellWebClient.on("update", (update) => {
@@ -70,15 +97,13 @@ const App = () => {
     retellWebClient.on("error", (error) => {
       console.error("An error occurred:", error);
       retellWebClient.stopCall();
+      resetHalo();
       setIsCalling(false);
-      setIsAgentSpeaking(false);
     });
 
     // Cleanup function
     return () => {
-      if (speakingTimeoutRef.current) {
-        clearTimeout(speakingTimeoutRef.current);
-      }
+      retellWebClient.removeAllListeners();
     };
   }, []);
 
@@ -101,7 +126,11 @@ async function requestMicrophonePermission() {
         const registerCallResponse = await registerCall(agentId);
         if (registerCallResponse.access_token) {
           await retellWebClient.startCall({
+            callId: registerCallResponse.call_id,
             accessToken: registerCallResponse.access_token,
+            transport: registerCallResponse.transport,
+            iceServers: registerCallResponse.ice_servers,
+            emitRawAudioSamples: true,
           });
         } else {
           console.error("No access token received");
@@ -155,12 +184,15 @@ async function requestMicrophonePermission() {
       <header className="App-header">
         <div className="portrait-wrapper">
           <div
-            className={`portrait-container ${isCalling ? 'active' : 'inactive'} ${isAgentSpeaking ? 'agent-speaking' : ''}`}
+            className={`portrait-container ${isCalling ? 'active' : 'inactive'}`}
             onClick={toggleConversation}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
           >
-            <div className={`halo ${isCalling ? 'active' : 'inactive'} ${isAgentSpeaking ? 'speaking' : 'not-speaking'}`}></div>
+            <div ref={haloRef} className={`halo ${isCalling ? 'active' : 'inactive'}`}>
+              <div className="halo-listening"></div>
+              <div className="halo-speaking"></div>
+            </div>
             <img
                src="/Victor_Round.png"
                alt="Victor"
